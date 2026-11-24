@@ -1,0 +1,234 @@
+{
+  "environment": {
+    "python_version": "3.12.10",
+    "os": "Windows 11",
+    "machine": "AMD64",
+    "cpu": "AMD Ryzen 5 220 (6 Cores / 12 Threads)",
+    "ram_gb": 16,
+    "value_range": "0 .. 999,999,999 (9 digits / 30 bits)"
+  },
+  "scaling_base256": [
+    {
+      "n": 10000,
+      "base": 256,
+      "passes": 4,
+      "trials": 5,
+      "times_sec": [
+        0.00635,
+        0.00524,
+        0.005409,
+        0.004846,
+        0.004798
+      ],
+      "avg_sec": 0.005329,
+      "min_sec": 0.004798,
+      "max_sec": 0.00635,
+      "ns_per_item": 532.85,
+      "comparisons": 0,
+      "writes": 40000,
+      "verified": true
+    },
+    {
+      "n": 100000,
+      "base": 256,
+      "passes": 4,
+      "trials": 5,
+      "times_sec": [
+        0.059394,
+        0.067875,
+        0.067873,
+        0.058749,
+        0.058351
+      ],
+      "avg_sec": 0.062448,
+      "min_sec": 0.058351,
+      "max_sec": 0.067875,
+      "ns_per_item": 624.48,
+      "comparisons": 0,
+      "writes": 400000,
+      "verified": true
+    },
+    {
+      "n": 1000000,
+      "base": 256,
+      "passes": 4,
+      "trials": 3,
+      "times_sec": [
+        1.227532,
+        1.190684,
+        1.242736
+      ],
+      "avg_sec": 1.220318,
+      "min_sec": 1.190684,
+      "max_sec": 1.242736,
+      "ns_per_item": 1220.32,
+      "comparisons": 0,
+      "writes": 4000000,
+      "verified": true
+    },
+    {
+      "n": 10000000,
+      "base": 256,
+      "passes": 4,
+      "trials": 1,
+      "times_sec": [
+        13.125303
+      ],
+      "avg_sec": 13.125303,
+      "min_sec": 13.125303,
+      "max_sec": 13.125303,
+      "ns_per_item": 1312.53,
+      "comparisons": 0,
+      "writes": 40000000,
+      "verified": true
+    }
+  ],
+  "scaling_base10": [
+    {
+      "n": 10000,
+      "base": 10,
+      "passes": 9,
+      "trials": 5,
+      "times_sec": [
+        0.01117,
+        0.011411,
+        0.010953,
+        0.011797,
+        0.011255
+      ],
+      "avg_sec": 0.011317,
+      "min_sec": 0.010953,
+      "max_sec": 0.011797,
+      "ns_per_item": 1131.71,
+      "comparisons": 0,
+      "writes": 90000,
+      "verified": true
+    },
+    {
+      "n": 100000,
+      "base": 10,
+      "passes": 9,
+      "trials": 5,
+      "times_sec": [
+        0.145399,
+        0.155445,
+        0.188465,
+        0.127794,
+        0.136371
+      ],
+      "avg_sec": 0.150695,
+      "min_sec": 0.127794,
+      "max_sec": 0.188465,
+      "ns_per_item": 1506.95,
+      "comparisons": 0,
+      "writes": 900000,
+      "verified": true
+    },
+    {
+      "n": 1000000,
+      "base": 10,
+      "passes": 9,
+      "trials": 3,
+      "times_sec": [
+        2.579821,
+        2.650357,
+        2.956534
+      ],
+      "avg_sec": 2.728904,
+      "min_sec": 2.579821,
+      "max_sec": 2.956534,
+      "ns_per_item": 2728.9,
+      "comparisons": 0,
+      "writes": 9000000,
+      "verified": true
+    },
+    {
+      "n": 10000000,
+      "base": 10,
+      "passes": 9,
+      "trials": 1,
+      "times_sec": [
+        30.95259
+      ],
+      "avg_sec": 30.95259,
+      "min_sec": 30.95259,
+      "max_sec": 30.95259,
+      "ns_per_item": 3095.26,
+      "comparisons": 0,
+      "writes": 90000000,
+      "verified": true
+    }
+  ],
+  "reference_merge_sort": {
+    "10000": 0.022728,
+    "100000": 0.298795,
+    "1000000": 3.973861
+  },
+  "base_comparison_1m": [
+    {
+      "base": 4,
+      "passes": 15,
+      "label": "Base 4 (Video Default — 2 bits/pass)",
+      "time_sec": 4.497238,
+      "writes": 15000000
+    },
+    {
+      "base": 10,
+      "passes": 9,
+      "label": "Base 10 (Decimal — 1 digit/pass)",
+      "time_sec": 2.598824,
+      "writes": 9000000
+    },
+    {
+      "base": 16,
+      "passes": 8,
+      "label": "Base 16 (Hex — 4 bits/pass)",
+      "time_sec": 2.258783,
+      "writes": 8000000
+    },
+    {
+      "base": 256,
+      "passes": 4,
+      "label": "Base 256 (Byte — 8 bits/pass)",
+      "time_sec": 1.127671,
+      "writes": 4000000
+    }
+  ],
+  "distributions_100k": [
+    {
+      "distribution": "Random",
+      "n": 100000,
+      "avg_sec": 0.063122,
+      "comparisons": 0,
+      "writes": 400000
+    },
+    {
+      "distribution": "Already Sorted",
+      "n": 100000,
+      "avg_sec": 0.049494,
+      "comparisons": 0,
+      "writes": 400000
+    },
+    {
+      "distribution": "Reverse Sorted",
+      "n": 100000,
+      "avg_sec": 0.062255,
+      "comparisons": 0,
+      "writes": 400000
+    },
+    {
+      "distribution": "Many Duplicates (100 values)",
+      "n": 100000,
+      "avg_sec": 0.057376,
+      "comparisons": 0,
+      "writes": 400000
+    }
+  ],
+  "comparison_summary": {
+    "selection_sort_10k_sec": 2.612071,
+    "radix256_10k_sec": 0.005329,
+    "speedup_vs_selection_10k": 490.2,
+    "est_selection_1m_hours": 7.3,
+    "speedup_vs_merge_1m": 3.26
+  }
+}

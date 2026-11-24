@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radix Sort (LSD) Simulator — The Sound of Sorting</title>
+  <style>
+    :root {
+      --bg: #080b12;
+      --panel: #101624;
+      --panel-border: #1e293b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --indigo: #818cf8;
+      --red: #ff3b5c;
+      --amber: #f59e0b;
+      --green: #10b981;
+      --purple: #c084fc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Leelawadee UI', 'Segoe UI', Tahoma, sans-serif;
+      background: radial-gradient(circle at top, #121a2f 0%, var(--bg) 62%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 20px 24px;
+    }
+
+    .app {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+    }
+
+    .title-group h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.16);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .badge-cyan {
+      background: rgba(56, 189, 248, 0.16);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .header-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: #0b101b;
+      border: 1px solid var(--panel-border);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.81rem;
+      color: #cbd5e1;
+    }
+    .pill strong { color: var(--accent); }
+    .pill strong.zero { color: #34d399; }
+
+    /* Stage */
+    .stage-wrapper {
+      position: relative;
+      background: #04060a;
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+    }
+
+    .hud {
+      position: absolute;
+      top: 12px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      font-family: Consolas, 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      z-index: 2;
+      gap: 10px;
+    }
+
+    .hud-left {
+      background: rgba(6, 9, 16, 0.82);
+      backdrop-filter: blur(4px);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .hud-title {
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.94rem;
+    }
+
+    .hud-stats { color: #cbd5e1; }
+    .hud-stats span { color: #38bdf8; font-weight: 700; }
+    .hud-stats span.zero { color: #34d399; }
+
+    .hud-status {
+      background: rgba(6, 9, 16, 0.84);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 6px 12px;
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 0.81rem;
+      text-align: right;
+    }
+    .hud-status .phase {
+      color: var(--amber);
+      font-weight: 700;
+      display: block;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 410px;
+    }
+
+    /* Live Buckets Strip */
+    .buckets-panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 10px 16px 12px;
+    }
+
+    .buckets-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .buckets-head strong { color: var(--text); }
+
+    .buckets-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bucket-card {
+      background: #0b101b;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 7px 8px;
+      text-align: center;
+      transition: transform 0.1s ease, border-color 0.1s ease, background 0.1s ease;
+    }
+
+    .bucket-card.active {
+      border-color: var(--amber);
+      background: rgba(245, 158, 11, 0.14);
+      transform: translateY(-2px);
+    }
+
+    .bucket-card.writing {
+      border-color: var(--red);
+      background: rgba(255, 59, 92, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .bucket-digit {
+      font-family: Consolas, monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .bucket-count {
+      font-family: Consolas, monospace;
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 2px 0 4px;
+    }
+
+    .bucket-bar-bg {
+      height: 6px;
+      background: #172033;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bucket-bar-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width 0.08s linear;
+    }
+
+    /* Controls */
+    .controls {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px 20px;
+      align-items: center;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+      background: #182235;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: #23314d;
+      border-color: #38bdf8;
+      transform: translateY(-1px);
+    }
+
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    button.primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+
+    button.warn {
+      background: rgba(245, 158, 11, 0.16);
+      border-color: rgba(245, 158, 11, 0.5);
+      color: #fcd34d;
+    }
+
+    button.sound-on {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #6ee7b7;
+    }
+
+    .sliders {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px 14px;
+      align-items: center;
+    }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .control-item label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .control-item label strong { color: var(--text); }
+
+    input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+    select {
+      font-family: inherit;
+      font-size: 0.82rem;
+      padding: 5px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--panel-border);
+      background: #0b101b;
+      color: var(--text);
+      outline: none;
+    }
+
+    .footer-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #cbd5e1;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    @media (max-width: 900px) {
+      .controls { grid-template-columns: 1fr; }
+      canvas { height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-group">
+        <h1>
+          Radix Sort (LSD) Simulator
+          <span class="badge">0 Comparisons!</span>
+          <span class="badge badge-cyan">The Sound of Sorting Style</span>
+        </h1>
+        <p class="subtitle">
+          จำลองการจัดเรียงตามหลักตัวเลขจากขวาไปซ้าย (Least Significant Digit) — ใช้ Base 4 เหมือนวิดีโอต้นฉบับ หรือสลับเป็น Base 10 เพื่ออธิบายทีละหลัก
+        </p>
+      </div>
+      <div class="header-meta">
+        <div class="pill">Time: <strong>O(d(n + b))</strong></div>
+        <div class="pill">Space: <strong>O(n + b)</strong></div>
+        <div class="pill">Comparisons: <strong class="zero">0 (Non-Comparison)</strong></div>
+      </div>
+    </header>
+
+    <div class="stage-wrapper">
+      <div class="hud">
+        <div class="hud-left">
+          <div class="hud-title" id="hudTitle">Radix Sort (LSD) — Base 4 (Video Authentic)</div>
+          <div class="hud-stats">
+            N = <span id="statN">128</span> &nbsp;|&nbsp;
+            Pass = <span id="statPass">0 / 4</span> &nbsp;|&nbsp;
+            Comparisons = <span class="zero">0</span> &nbsp;|&nbsp;
+            Reads = <span id="statReads">0</span> &nbsp;|&nbsp;
+            Writes = <span id="statWrites">0</span>
+          </div>
+          <div class="hud-stats">
+            Current Digit Weight (exp) = <span id="statExp">1</span> &nbsp;|&nbsp;
+            Delay = <span id="statDelay">10</span> ms
+          </div>
+        </div>
+        <div class="hud-status">
+          <span class="phase" id="phaseLabel">READY</span>
+          <span id="detailLabel">กด "เริ่มจัดเรียง" เพื่อดูคลื่น Bucket แบบ The Sound of Sorting</span>
+        </div>
+      </div>
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <section class="buckets-panel">
+      <div class="buckets-head">
+        <span><strong>ถังจัดกลุ่มตามหลักตัวเลข (Digit Buckets)</strong> — สแกนแยกเข้าถังแล้วรวบรวมกลับตามลำดับ</span>
+        <span id="bucketMeta">Base 4 → ถัง 0 ถึง 3</span>
+      </div>
+      <div class="buckets-grid" id="bucketsGrid"></div>
+    </section>
+
+    <section class="controls">
+      <div class="btn-row">
+        <button id="btnStart" class="primary">▶ เริ่มจัดเรียง</button>
+        <button id="btnPause" class="warn" disabled>⏸ พัก</button>
+        <button id="btnStep">⏭ ทีละขั้น</button>
+        <button id="btnShuffle">🔀 สุ่มใหม่</button>
+        <button id="btnSound" class="sound-on">🔊 เสียง: เปิด</button>
+      </div>
+
+      <div class="sliders">
+        <div class="control-item">
+          <label>ฐานเลข (Radix Base)</label>
+          <select id="selBase">
+            <option value="4" selected>Base 4 (ตามวิดีโอต้นฉบับ!)</option>
+            <option value="10">Base 10 (หลักหน่วย/สิบ/ร้อย)</option>
+            <option value="2">Base 2 (ทีละบิต — Binary)</option>
+            <option value="8">Base 8 (ฐานแปด — Octal)</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>จำนวนข้อมูล (N) <strong id="lblSize">128</strong></label>
+          <input type="range" id="rngSize" min="16" max="320" step="8" value="128" />
+        </div>
+
+        <div class="control-item">
+          <label>ความหน่วง (Delay) <strong id="lblDelay">10 ms</strong></label>
+          <input type="range" id="rngDelay" min="1" max="100" step="1" value="10" />
+        </div>
+
+        <div class="control-item">
+          <label>ความดังเสียง <strong id="lblVol">25%</strong></label>
+          <input type="range" id="rngVol" min="0" max="60" step="1" value="25" />
+        </div>
+
+        <div class="control-item">
+          <label>ข้อมูลตั้งต้น</label>
+          <select id="selPattern">
+            <option value="random">สุ่ม (Random)</option>
+            <option value="reversed">เรียงกลับด้าน (Reversed)</option>
+            <option value="nearly">เกือบเรียงแล้ว (Nearly Sorted)</option>
+            <option value="mountain">รูปภูเขา (Pyramid)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-bar">
+      <div class="legend">
+        <span class="legend-item"><span class="swatch" style="background:#f8fafc;"></span> ข้อมูลปกติ</span>
+        <span class="legend-item"><span class="swatch" style="background:#f59e0b;"></span> Phase 1: สแกนอ่านค่าหลักลงถัง (Count/Scan)</span>
+        <span class="legend-item"><span class="swatch" style="background:#ff3b5c;"></span> Phase 2: เขียนคืนจากถังทีละใบ (Gather/Write)</span>
+        <span class="legend-item"><span class="swatch" style="background:#10b981;"></span> เรียงเสร็จสมบูรณ์ (Verified Sweep)</span>
+      </div>
+      <div>อ้างอิงแนวคิดจาก <em>"15 Sorting Algorithms in 6 Minutes"</em> — Timo Bingmann (Algorithm #6: Radix Sort LSD)</div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // Web Audio Synthesizer (Triangle Wave — Timo Bingmann Sound of Sorting)
+    // =========================================================================
+    let audioCtx = null;
+    let soundEnabled = true;
+    let volume = 0.25;
+
+    function ensureAudio() {
+      if (!soundEnabled || volume <= 0) return null;
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) audioCtx = new Ctx();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTone(value, maxVal, durationMs = 40) {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const norm = Math.max(0, Math.min(1, value / maxVal));
+      const freq = 140 + 1110 * Math.pow(norm, 1.35);
+      const now = ctx.currentTime;
+      const dur = Math.max(0.018, Math.min(0.10, durationMs / 1000));
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+
+      const peak = volume * 0.22;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(peak, now + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + dur + 0.005);
+    }
+
+    // =========================================================================
+    // DOM & State
+    // =========================================================================
+    const canvas = document.getElementById('canvas');
+    const ctx2d = canvas.getContext('2d');
+
+    const elHudTitle = document.getElementById('hudTitle');
+    const elStatN = document.getElementById('statN');
+    const elStatPass = document.getElementById('statPass');
+    const elStatReads = document.getElementById('statReads');
+    const elStatWrites = document.getElementById('statWrites');
+    const elStatExp = document.getElementById('statExp');
+    const elStatDelay = document.getElementById('statDelay');
+    const elPhase = document.getElementById('phaseLabel');
+    const elDetail = document.getElementById('detailLabel');
+    const elBucketsGrid = document.getElementById('bucketsGrid');
+    const elBucketMeta = document.getElementById('bucketMeta');
+
+    const btnStart = document.getElementById('btnStart');
+    const btnPause = document.getElementById('btnPause');
+    const btnStep = document.getElementById('btnStep');
+    const btnShuffle = document.getElementById('btnShuffle');
+    const btnSound = document.getElementById('btnSound');
+    const selBase = document.getElementById('selBase');
+    const rngSize = document.getElementById('rngSize');
+    const rngDelay = document.getElementById('rngDelay');
+    const rngVol = document.getElementById('rngVol');
+    const selPattern = document.getElementById('selPattern');
+    const lblSize = document.getElementById('lblSize');
+    const lblDelay = document.getElementById('lblDelay');
+    const lblVol = document.getElementById('lblVol');
+
+    const BUCKET_COLORS = [
+      '#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#fb7185',
+      '#fb923c', '#facc15', '#4ade80', '#2dd4bf', '#60a5fa'
+    ];
+
+    let N = parseInt(rngSize.value, 10);
+    let base = parseInt(selBase.value, 10);
+    let delayMs = parseInt(rngDelay.value, 10);
+    let arr = [];
+
+    let reads = 0;
+    let writes = 0;
+    let currentPass = 0;
+    let totalPasses = 1;
+    let currentExp = 1;
+
+    let highlightAmber = -1;
+    let highlightRed = -1;
+    let activeBucket = -1;
+    let activeBucketMode = ''; // 'scan' | 'write'
+    let bucketCounts = [];
+    let bucketBounds = []; // [{start, end, digit}] for subtle region bands during gather
+    let verifiedCount = 0;
+
+    let generator = null;
+    let isRunning = false;
+    let isPaused = false;
+    let timerId = null;
+
+    function computeTotalPasses(maxVal, b) {
+      let p = 0, e = 1;
+      while (Math.floor(maxVal / e) > 0) { p++; e *= b; }
+      return Math.max(1, p);
+    }
+
+    function buildBucketsUI() {
+      elBucketsGrid.style.gridTemplateColumns = `repeat(${base}, minmax(0, 1fr))`;
+      elBucketsGrid.innerHTML = '';
+      bucketCounts = new Array(base).fill(0);
+      for (let d = 0; d < base; d++) {
+        const col = BUCKET_COLORS[d % BUCKET_COLORS.length];
+        const card = document.createElement('div');
+        card.className = 'bucket-card';
+        card.id = `bucket-${d}`;
+        card.innerHTML = `
+          <div class="bucket-digit" style="color:${col}">ถัง ${d}</div>
+          <div class="bucket-count" id="bcount-${d}">0</div>
+          <div class="bucket-bar-bg">
+            <div class="bucket-bar-fill" id="bfill-${d}" style="background:${col}"></div>
+          </div>
+        `;
+        elBucketsGrid.appendChild(card);
+      }
+      elBucketMeta.textContent = `Base ${base} → ${base} ถัง (0 ถึง ${base - 1}) • ใช้ทั้งหมด ${totalPasses} รอบ`;
+    }
+
+    function updateBucketsUI() {
+      const maxExpected = Math.max(1, Math.ceil((N / base) * 1.45));
+      for (let d = 0; d < base; d++) {
+        const card = document.getElementById(`bucket-${d}`);
+        const cntEl = document.getElementById(`bcount-${d}`);
+        const fillEl = document.getElementById(`bfill-${d}`);
+        if (!card) continue;
+        cntEl.textContent = bucketCounts[d];
+        const pct = Math.min(100, (bucketCounts[d] / maxExpected) * 100);
+        fillEl.style.width = `${pct}%`;
+        card.classList.toggle('active', activeBucket === d && activeBucketMode === 'scan');
+        card.classList.toggle('writing', activeBucket === d && activeBucketMode === 'write');
+      }
+    }
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function generateArray(size, pattern) {
+      const a = [];
+      for (let i = 1; i <= size; i++) a.push(i);
+      if (pattern === 'random') {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+      } else if (pattern === 'reversed') {
+        a.reverse();
+      } else if (pattern === 'nearly') {
+        const swaps = Math.max(2, Math.floor(size * 0.08));
+        for (let s = 0; s < swaps; s++) {
+          const i = Math.floor(Math.random() * size);
+          const j = Math.min(size - 1, Math.max(0, i + Math.floor(Math.random() * 9) - 4));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+      } else if (pattern === 'mountain') {
+        const out = new Array(size);
+        let l = 0, r = size - 1;
+        for (let i = 0; i < size; i++) {
+          if (i % 2 === 0) out[l++] = i + 1;
+          else out[r--] = i + 1;
+        }
+        return out;
+      }
+      return a;
+    }
+
+    function updateHUD(phaseText, detailText) {
+      const modeName = base === 4 ? 'Base 4 (Video Authentic)' : `Base ${base}`;
+      elHudTitle.textContent = `Radix Sort (LSD) — ${modeName}`;
+      elStatN.textContent = N;
+      elStatPass.textContent = `${currentPass} / ${totalPasses}`;
+      elStatReads.textContent = reads.toLocaleString();
+      elStatWrites.textContent = writes.toLocaleString();
+      elStatExp.textContent = currentExp.toLocaleString();
+      elStatDelay.textContent = delayMs;
+      if (phaseText !== undefined) elPhase.textContent = phaseText;
+      if (detailText !== undefined) elDetail.textContent = detailText;
+    }
+
+    function draw() {
+      const width = canvas.getBoundingClientRect().width;
+      const height = canvas.getBoundingClientRect().height;
+
+      ctx2d.fillStyle = '#04060a';
+      ctx2d.fillRect(0, 0, width, height);
+
+      const padX = 16;
+      const topPad = 76;
+      const bottomPad = 14;
+      const drawW = width - padX * 2;
+      const drawH = height - topPad - bottomPad;
+      const barW = drawW / N;
+      const gap = N <= 80 ? Math.max(1, barW * 0.14) : (N <= 180 ? 0.8 : 0);
+
+      // Subtle bucket region backdrop during Gather phase
+      if (bucketBounds.length > 0) {
+        for (const seg of bucketBounds) {
+          if (seg.end <= seg.start) continue;
+          const x0 = padX + seg.start * barW;
+          const w = (seg.end - seg.start) * barW;
+          const col = BUCKET_COLORS[seg.digit % BUCKET_COLORS.length];
+          ctx2d.fillStyle = col + '18';
+          ctx2d.fillRect(x0, topPad - 6, w, drawH + 10);
+          ctx2d.fillStyle = col;
+          ctx2d.fillRect(x0, topPad - 9, Math.max(1, w - 1), 3);
+        }
+      }
+
+      // Draw bars
+      for (let i = 0; i < N; i++) {
+        const val = arr[i];
+        const barH = Math.max(2, (val / N) * drawH);
+        const x = padX + i * barW;
+        const y = height - bottomPad - barH;
+
+        let color = '#f1f5f9';
+        if (i < verifiedCount) color = '#10b981';
+        if (i === highlightAmber) color = '#f59e0b';
+        if (i === highlightRed) color = '#ff3b5c';
+
+        ctx2d.fillStyle = color;
+        ctx2d.fillRect(x, y, Math.max(1, barW - gap), barH);
+      }
+    }
+
+    // =========================================================================
+    // Radix Sort (LSD) Generator — 0 Comparisons!
+    // =========================================================================
+    function* radixSortLSDSteps() {
+      const maxVal = Math.max(...arr);
+      totalPasses = computeTotalPasses(maxVal, base);
+      let exp = 1;
+
+      for (let pass = 1; pass <= totalPasses; pass++) {
+        currentPass = pass;
+        currentExp = exp;
+        bucketBounds = [];
+        const buckets = Array.from({ length: base }, () => []);
+        bucketCounts = new Array(base).fill(0);
+
+        // Phase 1: Scan left -> right and distribute into digit buckets
+        for (let i = 0; i < N; i++) {
+          const val = arr[i];
+          const digit = Math.floor(val / exp) % base;
+          reads++;
+          buckets[digit].push(val);
+          bucketCounts[digit]++;
+
+          highlightAmber = i;
+          highlightRed = -1;
+          activeBucket = digit;
+          activeBucketMode = 'scan';
+
+          const digitDesc = base === 10
+            ? `หลักที่ ${pass} (×${exp})`
+            : `หลักฐาน ${base} รอบ ${pass}/${totalPasses}`;
+          updateHUD(
+            `PASS ${pass}/${totalPasses} — SCAN INTO BUCKETS`,
+            `ค่า ${val} → ${digitDesc} ได้เลขโดด = ${digit} (ใส่ถัง ${digit})`
+          );
+          updateBucketsUI();
+          playTone(val, N, Math.max(22, delayMs * 1.1));
+          yield 'step';
+        }
+
+        // Pre-calculate bucket region boundaries for visual bands
+        let cursor = 0;
+        bucketBounds = [];
+        for (let d = 0; d < base; d++) {
+          bucketBounds.push({ start: cursor, end: cursor + buckets[d].length, digit: d });
+          cursor += buckets[d].length;
+        }
+
+        // Phase 2: Gather back from Bucket 0 -> Bucket (base-1) stably
+        let writeIdx = 0;
+        for (let d = 0; d < base; d++) {
+          const b = buckets[d];
+          for (let j = 0; j < b.length; j++) {
+            const val = b[j];
+            arr[writeIdx] = val;
+            writes++;
+            reads++;
+            bucketCounts[d] = b.length - j - 1;
+
+            highlightAmber = -1;
+            highlightRed = writeIdx;
+            activeBucket = d;
+            activeBucketMode = 'write';
+
+            updateHUD(
+              `PASS ${pass}/${totalPasses} — GATHER BUCKET ${d}`,
+              `ดึงค่า ${val} จากถัง ${d} เขียนคืนตำแหน่ง index ${writeIdx}`
+            );
+            updateBucketsUI();
+            playTone(val, N, Math.max(22, delayMs * 1.2));
+            writeIdx++;
+            yield 'step';
+          }
+        }
+
+        exp *= base;
+      }
+
+      // Final Green Verification Sweep (signature Sound of Sorting finale!)
+      highlightAmber = -1;
+      activeBucket = -1;
+      activeBucketMode = '';
+      bucketBounds = [];
+      updateBucketsUI();
+
+      for (let i = 0; i < N; i++) {
+        verifiedCount = i + 1;
+        highlightRed = i;
+        updateHUD('VERIFYING...', `ตรวจสอบความถูกต้อง: ${i + 1} / ${N} (Comparisons = 0)`);
+        playTone(arr[i], N, 45);
+        yield 'verify';
+      }
+
+      highlightRed = -1;
+      updateHUD('SORTED ✓', `จัดเรียงเสร็จสมบูรณ์ใน ${totalPasses} รอบ! (0 Comparisons, ${writes.toLocaleString()} Writes)`);
+    }
+
+    // =========================================================================
+    // Playback Controls
+    // =========================================================================
+    function stopLoop() {
+      if (timerId !== null) {
+        clearTimeout(timerId);
+        timerId = null;
+      }
+    }
+
+    function resetState() {
+      stopLoop();
+      isRunning = false;
+      isPaused = false;
+      generator = null;
+      reads = 0;
+      writes = 0;
+      currentPass = 0;
+      currentExp = 1;
+      highlightAmber = -1;
+      highlightRed = -1;
+      activeBucket = -1;
+      activeBucketMode = '';
+      bucketBounds = [];
+      verifiedCount = 0;
+
+      arr = generateArray(N, selPattern.value);
+      totalPasses = computeTotalPasses(N, base);
+      buildBucketsUI();
+
+      btnStart.disabled = false;
+      btnStart.textContent = '▶ เริ่มจัดเรียง';
+      btnPause.disabled = true;
+      btnPause.textContent = '⏸ พัก';
+      rngSize.disabled = false;
+      selBase.disabled = false;
+      selPattern.disabled = false;
+
+      updateHUD('READY', `พร้อมจำลอง Radix Sort LSD (Base ${base}, ${totalPasses} รอบ, 0 Comparisons)`);
+      draw();
+    }
+
+    function stepOnce() {
+      if (!generator) {
+        generator = radixSortLSDSteps();
+        rngSize.disabled = true;
+        selBase.disabled = true;
+        selPattern.disabled = true;
+      }
+      const res = generator.next();
+      draw();
+      if (res.done) {
+        isRunning = false;
+        isPaused = false;
+        stopLoop();
+        btnStart.disabled = false;
+        btnStart.textContent = '▶ เริ่มใหม่';
+        btnPause.disabled = true;
+        rngSize.disabled = false;
+        selBase.disabled = false;
+        selPattern.disabled = false;
+        generator = null;
+        return false;
+      }
+      return res.value || 'step';
+    }
+
+    function runLoop() {
+      if (!isRunning || isPaused) return;
+      const mode = stepOnce();
+      if (!mode) return;
+      const wait = mode === 'verify' ? Math.max(4, Math.min(18, Math.floor(900 / N))) : delayMs;
+      timerId = setTimeout(runLoop, wait);
+    }
+
+    btnStart.addEventListener('click', () => {
+      ensureAudio();
+      if (verifiedCount === N) resetState();
+      if (!generator) generator = radixSortLSDSteps();
+      isRunning = true;
+      isPaused = false;
+      btnStart.disabled = true;
+      btnPause.disabled = false;
+      btnPause.textContent = '⏸ พัก';
+      rngSize.disabled = true;
+      selBase.disabled = true;
+      selPattern.disabled = true;
+      runLoop();
+    });
+
+    btnPause.addEventListener('click', () => {
+      if (!isRunning) return;
+      isPaused = !isPaused;
+      if (isPaused) {
+        stopLoop();
+        btnPause.textContent = '▶ ทำต่อ';
+        elPhase.textContent = 'PAUSED';
+      } else {
+        btnPause.textContent = '⏸ พัก';
+        runLoop();
+      }
+    });
+
+    btnStep.addEventListener('click', () => {
+      ensureAudio();
+      if (isRunning && !isPaused) {
+        isPaused = true;
+        stopLoop();
+        btnPause.textContent = '▶ ทำต่อ';
+      }
+      if (verifiedCount === N) resetState();
+      stepOnce();
+    });
+
+    btnShuffle.addEventListener('click', resetState);
+
+    btnSound.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      btnSound.textContent = soundEnabled ? '🔊 เสียง: เปิด' : '🔇 เสียง: ปิด';
+      btnSound.classList.toggle('sound-on', soundEnabled);
+    });
+
+    selBase.addEventListener('change', () => {
+      base = parseInt(selBase.value, 10);
+      resetState();
+    });
+
+    rngSize.addEventListener('input', () => {
+      N = parseInt(rngSize.value, 10);
+      lblSize.textContent = N;
+      resetState();
+    });
+
+    rngDelay.addEventListener('input', () => {
+      delayMs = parseInt(rngDelay.value, 10);
+      lblDelay.textContent = `${delayMs} ms`;
+      elStatDelay.textContent = delayMs;
+    });
+
+    rngVol.addEventListener('input', () => {
+      const v = parseInt(rngVol.value, 10);
+      volume = v / 100;
+      lblVol.textContent = `${v}%`;
+    });
+
+    selPattern.addEventListener('change', resetState);
+
+    // Init
+    resizeCanvas();
+    resetState();
+  </script>
+</body>
+</html>
